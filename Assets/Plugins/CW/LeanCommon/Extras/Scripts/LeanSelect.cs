@@ -75,7 +75,7 @@ namespace Lean.Common
 		/// <summary>This remove the specified object from this component's <b>Selectables</b> list if present, and deselect it.</summary>
 		public void Deselect(LeanSelectable selectable)
 		{
-			if (selectable != null && selectables != null)
+			if (selectable is not null && selectables != null)
 			{
 				TryDeselect(selectable);
 			}

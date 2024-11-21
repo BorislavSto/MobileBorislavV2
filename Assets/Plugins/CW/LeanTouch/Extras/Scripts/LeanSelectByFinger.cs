@@ -51,7 +51,7 @@ namespace Lean.Touch
 		{
 			var pair = new LeanSelectableByFinger.SelectedPair() { Finger = finger, Select = this };
 
-			if (TrySelect(selectable) == true)
+			if (TrySelect(selectable))
 			{
 				var selectableByFinger = selectable as LeanSelectableByFinger;
 
