@@ -16,38 +16,36 @@ public class GridManager : MonoBehaviour
     public float gridSpacing = 0.6f;
     public GameObject candyPrefab;
     public Transform gridParent;
-    
-    [Header("Blockout Area")]
-    public BlockoutArea[] blockoutAreas;
-    
-    [HideInInspector]
-    public GameObject[,] grid;
-    
+
+    [Header("Blockout Area")] public BlockoutArea[] blockoutAreas;
+
+    [HideInInspector] public GameObject[,] grid;
+
     void Start()
     {
         grid = new GameObject[gridWidth, gridHeight];
         InitializeGrid();
     }
-    
+
     void InitializeGrid()
     {
         Vector2 parentPosition = gridParent.position;
-        
+
         for (int x = 0; x < gridWidth; x++)
         {
             for (int y = 0; y < gridHeight; y++)
             {
-                if (IsWithinBlockoutArea(x, y)) 
+                if (IsWithinBlockoutArea(x, y))
                     continue;
-                
+
                 Vector2 position = parentPosition + new Vector2(x * gridSpacing, y * gridSpacing);
                 GameObject candy = Instantiate(candyPrefab, position, Quaternion.identity, gridParent);
                 grid[x, y] = candy;
-                candy.GetComponent<Sweet>().SetPosition(x,y);
+                candy.GetComponent<Sweet>().SetPosition(x, y);
             }
         }
     }
-    
+
     bool IsWithinBlockoutArea(int x, int y)
     {
         foreach (BlockoutArea blockoutArea in blockoutAreas)
@@ -58,29 +56,32 @@ public class GridManager : MonoBehaviour
                 return true;
             }
         }
+
         return false;
     }
 
     public void CheckForMatches()
     {
-        // Create a HashSet to store candies to destroy (prevents duplicates)
         HashSet<GameObject> candiesToDestroy = new HashSet<GameObject>();
 
         // Horizontal matches
-        for (int x = 0; x < gridWidth - 2; x++)
+        for (int y = 0; y < gridHeight; y++)
         {
-            for (int y = 0; y < gridHeight; y++)
+            for (int x = 0; x < gridWidth - 2; x++)
             {
-                GameObject candy = grid[x, y];
-                if (candy == null) continue;
+                if (grid[x, y] == null || grid[x + 1, y] == null || grid[x + 2, y] == null)
+                    continue;
 
-                Sweet candyScript = candy.GetComponent<Sweet>();
+                Sweet current = grid[x, y].GetComponent<Sweet>();
+                Sweet next1 = grid[x + 1, y].GetComponent<Sweet>();
+                Sweet next2 = grid[x + 2, y].GetComponent<Sweet>();
 
-                // Check for a horizontal match
-                if (grid[x + 1, y]?.GetComponent<Sweet>().originalSweet == candyScript.originalSweet &&
-                    grid[x + 2, y]?.GetComponent<Sweet>().originalSweet == candyScript.originalSweet)
+                Debug.Log(
+                    $"Checking horizontal match at ({x}, {y}): {current.originalSweetName}, {next1.originalSweetName}, {next2.originalSweetName}");
+
+                if (current.originalSweetName == next1.originalSweetName && current.originalSweetName == next2.originalSweetName)
                 {
-                    // Add candies in the match to the HashSet
+                    Debug.Log($"Horizontal match found at ({x}, {y}) with type {current.originalSweetName}");
                     candiesToDestroy.Add(grid[x, y]);
                     candiesToDestroy.Add(grid[x + 1, y]);
                     candiesToDestroy.Add(grid[x + 2, y]);
@@ -93,16 +94,19 @@ public class GridManager : MonoBehaviour
         {
             for (int y = 0; y < gridHeight - 2; y++)
             {
-                GameObject candy = grid[x, y];
-                if (candy == null) continue;
+                if (grid[x, y] == null || grid[x, y + 1] == null || grid[x, y + 2] == null)
+                    continue;
 
-                Sweet candyScript = candy.GetComponent<Sweet>();
+                Sweet current = grid[x, y].GetComponent<Sweet>();
+                Sweet next1 = grid[x, y + 1].GetComponent<Sweet>();
+                Sweet next2 = grid[x, y + 2].GetComponent<Sweet>();
 
-                // Check for a vertical match
-                if (grid[x, y + 1]?.GetComponent<Sweet>().originalSweet == candyScript.originalSweet &&
-                    grid[x, y + 2]?.GetComponent<Sweet>().originalSweet == candyScript.originalSweet)
+                Debug.Log(
+                    $"Checking vertical match at ({x}, {y}): {current.originalSweetName}, {next1.originalSweetName}, {next2.originalSweetName}");
+
+                if (current.originalSweetName == next1.originalSweetName && current.originalSweetName == next2.originalSweetName)
                 {
-                    // Add candies in the match to the HashSet
+                    Debug.Log($"Vertical match found at ({x}, {y}) with type {current.originalSweetName}");
                     candiesToDestroy.Add(grid[x, y]);
                     candiesToDestroy.Add(grid[x, y + 1]);
                     candiesToDestroy.Add(grid[x, y + 2]);
@@ -110,18 +114,21 @@ public class GridManager : MonoBehaviour
             }
         }
 
+        // Destroy matched candies
         foreach (GameObject candy in candiesToDestroy)
         {
-            if (candy is not null)
+            if (candy != null)
             {
                 Sweet candyScript = candy.GetComponent<Sweet>();
-                if (candyScript is not null)
+                Debug.Log(
+                    $"Destroying candy at ({candyScript.GridX}, {candyScript.GridY}) with type {candyScript.originalSweetName}");
+
+                if (candyScript != null)
                     grid[candyScript.GridX, candyScript.GridY] = null;
 
                 Destroy(candy);
             }
         }
-
         // Optionally: Call a function to refill the grid after candies are destroyed
         // RefillGrid();
     }

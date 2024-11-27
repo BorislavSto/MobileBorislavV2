@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Random = UnityEngine.Random;
 
 [Serializable]
@@ -22,7 +23,7 @@ public struct Sweets
 public class Sweet : MonoBehaviour
 {
     public Sweets[] sweets;
-    public SweetName originalSweet;
+    public SweetName originalSweetName;
     private Color originalColor;  // Store the original color
     
     public int GridX { get; private set; }
@@ -39,6 +40,7 @@ public class Sweet : MonoBehaviour
         }
 
         int randomIndex = Random.Range(0, sweets.Length);
+        originalSweetName = sweets[randomIndex].SweetName;
         Sweets selectedSweet = sweets[randomIndex];
 
         //spriteRenderer.sprite = selectedSweet.CandySprite;

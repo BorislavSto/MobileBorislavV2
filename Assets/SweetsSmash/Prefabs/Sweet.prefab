@@ -207,4 +207,4 @@ MonoBehaviour:
   - SweetName: 3
     SweetColor: {r: 0.0018069744, g: 1, b: 0, a: 1}
     SweetSprite: {fileID: 0}
-  originalSweet: 0
+  originalSweetName: 0
