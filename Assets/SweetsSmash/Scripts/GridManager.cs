@@ -17,6 +17,7 @@ public class GridManager : MonoBehaviour
     public float gridSpacing = 0.6f;
     public GameObject candyPrefab;
     public Transform gridParent;
+    protected Vector2 SpawnHeight = new Vector2(0, 6);
 
     [Header("Blockout Area")] public BlockoutArea[] blockoutAreas;
 
@@ -26,72 +27,16 @@ public class GridManager : MonoBehaviour
     {
         grid = new GameObject[gridWidth, gridHeight];
         StartCoroutine(InitializeGrid());
-        //StartCoroutine(AnimateGridInitialization());
-    }
-
-    IEnumerator AnimateGridInitialization()
-    {
-        Vector2 parentPosition = gridParent.position;
-
-        for (int x = 0; x < gridWidth; x++)
-        {
-            List<GameObject> candiesInColumn = new List<GameObject>();
-
-            for (int y = gridHeight - 1; y >= 0; y--) // Top to bottom
-            {
-                if (IsWithinBlockoutArea(x, y))
-                    continue;
-
-                Vector2 targetPosition = parentPosition + new Vector2(x * gridSpacing, y * gridSpacing);
-                Vector2 startPosition = targetPosition + Vector2.up * 5f; // Start candies above the grid
-
-                GameObject candy = Instantiate(candyPrefab, startPosition, Quaternion.identity, gridParent);
-                candiesInColumn.Add(candy);
-
-                grid[x, y] = candy;
-                candy.GetComponent<Sweet>().SetPosition(x, y);
-            }
-
-            // Animate all candies in this column
-            StartCoroutine(AnimateColumnFall(candiesInColumn, x));
-
-            // Slight delay before moving to the next column
-            yield return new WaitForSeconds(0.1f); 
-        }
-    }
-
-    IEnumerator AnimateColumnFall(List<GameObject> candies, int column)
-    {
-        float fallDuration = 0.3f; // Faster animation
-
-        foreach (GameObject candy in candies)
-        {
-            if (candy)
-            {
-                Vector3 targetPosition = candy.transform.position - Vector3.up * 5f; // End at grid position
-                Vector3 startPosition = candy.transform.position;
-
-                float elapsedTime = 0f;
-
-                while (elapsedTime < fallDuration)
-                {
-                    candy.transform.position = Vector3.Lerp(startPosition, targetPosition, elapsedTime / fallDuration);
-                    elapsedTime += Time.deltaTime;
-                    yield return null;
-                }
-
-                candy.transform.position = targetPosition; // Snap to position
-            }
-        }
     }
 
     IEnumerator InitializeGrid()
     {
         Vector2 parentPosition = gridParent.position;
-        
+
         for (int y = 0; y < gridHeight; y++)
         {
-            List<GameObject> columnCandies = new List<GameObject>();
+            List<GameObject> columnCandies = new();
+            List<Vector2> targetPositions = new();
 
             for (int x = 0; x < gridWidth; x++)
             {
@@ -100,24 +45,40 @@ public class GridManager : MonoBehaviour
 
                 Vector2 targetposition = parentPosition + new Vector2(x * gridSpacing, y * gridSpacing);
                 Vector2 startPosition = targetposition + Vector2.up * 5f;
+
                 GameObject candy = Instantiate(candyPrefab, startPosition, Quaternion.identity, gridParent);
                 grid[x, y] = candy;
                 candy.GetComponent<Sweet>().SetPosition(x, y);
-                
-                columnCandies.Add(candy);
-                
-                float fallDuration = 0.3f;
-                float elapsedTime = 0f;
 
-                while (elapsedTime < fallDuration)
+                columnCandies.Add(candy);
+                targetPositions.Add(targetposition);
+            }
+
+            float fallDuration = 0.3f;
+            float elapsedTime = 0f;
+
+            while (elapsedTime < fallDuration)
+            {
+                float t = elapsedTime / fallDuration;
+
+                for (int i = 0; i < columnCandies.Count; i++)
                 {
-                    candy.transform.position = Vector3.Lerp(startPosition, targetposition, elapsedTime / fallDuration);
-                    elapsedTime += Time.deltaTime;
-                    yield return null;
+                    Vector2 startPosition = targetPositions[i] + Vector2.up * 5f;
+                    columnCandies[i].transform.position = Vector3.Lerp(startPosition, targetPositions[i], t);
                 }
+
+                elapsedTime += Time.deltaTime;
+                yield return null;
+            }
+
+            for (int i = 0; i < columnCandies.Count; i++)
+            {
+                columnCandies[i].transform.position = targetPositions[i];
             }
         }
+        CheckForMatches();
     }
+
 
     bool IsWithinBlockoutArea(int x, int y)
     {
@@ -201,7 +162,94 @@ public class GridManager : MonoBehaviour
                 Destroy(candy);
             }
         }
-        // Optionally: Call a function to refill the grid after candies are destroyed
-        // RefillGrid();
+        RefillGrid();
+    }
+
+    public void RefillGrid()
+    {
+        StartCoroutine(RefillGridCoroutine());
+    }
+
+    IEnumerator RefillGridCoroutine()
+    {
+        Vector2 parentPosition = gridParent.position;
+
+        for (int x = 0; x < gridWidth; x++)
+        {
+            List<GameObject> candiesToDrop = new List<GameObject>();
+            List<Vector2> targetPositions = new List<Vector2>();
+            int emptySpaces = 0;
+
+            // Check each column from bottom to top
+            for (int y = 0; y < gridHeight; y++)
+            {
+                if (grid[x, y] == null)
+                {
+                    emptySpaces++;
+                }
+                else if (emptySpaces > 0)
+                {
+                    // Move candy down by the number of empty spaces
+                    candiesToDrop.Add(grid[x, y]);
+                    targetPositions.Add(parentPosition + new Vector2(x * gridSpacing, (y - emptySpaces) * gridSpacing));
+
+                    // Update the grid
+                    grid[x, y - emptySpaces] = grid[x, y];
+                    grid[x, y] = null;
+                }
+            }
+
+            // Animate existing candies moving down
+            float fallDuration = 0.3f;
+            float elapsedTime = 0f;
+
+            while (elapsedTime < fallDuration)
+            {
+                float t = elapsedTime / fallDuration;
+
+                for (int i = 0; i < candiesToDrop.Count; i++)
+                {
+                    Vector2 startPosition = candiesToDrop[i].transform.position;
+                    candiesToDrop[i].transform.position = Vector3.Lerp(startPosition, targetPositions[i], t);
+                }
+
+                elapsedTime += Time.deltaTime;
+                yield return null;
+            }
+
+            for (int i = 0; i < candiesToDrop.Count; i++)
+            {
+                candiesToDrop[i].transform.position = targetPositions[i];
+                Sweet sweet = candiesToDrop[i].GetComponent<Sweet>();
+                sweet.SetPosition(x, (int)(targetPositions[i].y / gridSpacing));
+            }
+
+            // Spawn new candies for empty spaces at the top
+            for (int y = gridHeight - emptySpaces; y < gridHeight; y++)
+            {
+                Vector2 targetPosition = parentPosition + new Vector2(x * gridSpacing, y * gridSpacing);
+                Vector2 startPosition = targetPosition + Vector2.up * 5f;
+
+                GameObject newCandy = Instantiate(candyPrefab, startPosition, Quaternion.identity, gridParent);
+                newCandy.GetComponent<Sweet>().SetPosition(x, y);
+                grid[x, y] = newCandy;
+
+                float spawnElapsedTime = 0f;
+
+                while (spawnElapsedTime < fallDuration)
+                {
+                    float t = spawnElapsedTime / fallDuration;
+                    newCandy.transform.position = Vector3.Lerp(startPosition, targetPosition, t);
+                    spawnElapsedTime += Time.deltaTime;
+                    yield return null;
+                }
+
+                newCandy.transform.position = targetPosition;
+            }
+        }
+
+        // After refilling, check for new matches
+        yield return new WaitForEndOfFrame();
+        CheckForMatches();
     }
 }
