@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -24,24 +25,96 @@ public class GridManager : MonoBehaviour
     void Start()
     {
         grid = new GameObject[gridWidth, gridHeight];
-        InitializeGrid();
+        StartCoroutine(InitializeGrid());
+        //StartCoroutine(AnimateGridInitialization());
     }
 
-    void InitializeGrid()
+    IEnumerator AnimateGridInitialization()
     {
         Vector2 parentPosition = gridParent.position;
 
         for (int x = 0; x < gridWidth; x++)
         {
-            for (int y = 0; y < gridHeight; y++)
+            List<GameObject> candiesInColumn = new List<GameObject>();
+
+            for (int y = gridHeight - 1; y >= 0; y--) // Top to bottom
             {
                 if (IsWithinBlockoutArea(x, y))
                     continue;
 
-                Vector2 position = parentPosition + new Vector2(x * gridSpacing, y * gridSpacing);
-                GameObject candy = Instantiate(candyPrefab, position, Quaternion.identity, gridParent);
+                Vector2 targetPosition = parentPosition + new Vector2(x * gridSpacing, y * gridSpacing);
+                Vector2 startPosition = targetPosition + Vector2.up * 5f; // Start candies above the grid
+
+                GameObject candy = Instantiate(candyPrefab, startPosition, Quaternion.identity, gridParent);
+                candiesInColumn.Add(candy);
+
                 grid[x, y] = candy;
                 candy.GetComponent<Sweet>().SetPosition(x, y);
+            }
+
+            // Animate all candies in this column
+            StartCoroutine(AnimateColumnFall(candiesInColumn, x));
+
+            // Slight delay before moving to the next column
+            yield return new WaitForSeconds(0.1f); 
+        }
+    }
+
+    IEnumerator AnimateColumnFall(List<GameObject> candies, int column)
+    {
+        float fallDuration = 0.3f; // Faster animation
+
+        foreach (GameObject candy in candies)
+        {
+            if (candy)
+            {
+                Vector3 targetPosition = candy.transform.position - Vector3.up * 5f; // End at grid position
+                Vector3 startPosition = candy.transform.position;
+
+                float elapsedTime = 0f;
+
+                while (elapsedTime < fallDuration)
+                {
+                    candy.transform.position = Vector3.Lerp(startPosition, targetPosition, elapsedTime / fallDuration);
+                    elapsedTime += Time.deltaTime;
+                    yield return null;
+                }
+
+                candy.transform.position = targetPosition; // Snap to position
+            }
+        }
+    }
+
+    IEnumerator InitializeGrid()
+    {
+        Vector2 parentPosition = gridParent.position;
+        
+        for (int y = 0; y < gridHeight; y++)
+        {
+            List<GameObject> columnCandies = new List<GameObject>();
+
+            for (int x = 0; x < gridWidth; x++)
+            {
+                if (IsWithinBlockoutArea(x, y))
+                    continue;
+
+                Vector2 targetposition = parentPosition + new Vector2(x * gridSpacing, y * gridSpacing);
+                Vector2 startPosition = targetposition + Vector2.up * 5f;
+                GameObject candy = Instantiate(candyPrefab, startPosition, Quaternion.identity, gridParent);
+                grid[x, y] = candy;
+                candy.GetComponent<Sweet>().SetPosition(x, y);
+                
+                columnCandies.Add(candy);
+                
+                float fallDuration = 0.3f;
+                float elapsedTime = 0f;
+
+                while (elapsedTime < fallDuration)
+                {
+                    candy.transform.position = Vector3.Lerp(startPosition, targetposition, elapsedTime / fallDuration);
+                    elapsedTime += Time.deltaTime;
+                    yield return null;
+                }
             }
         }
     }
@@ -76,8 +149,7 @@ public class GridManager : MonoBehaviour
                 Sweet next1 = grid[x + 1, y].GetComponent<Sweet>();
                 Sweet next2 = grid[x + 2, y].GetComponent<Sweet>();
 
-                Debug.Log(
-                    $"Checking horizontal match at ({x}, {y}): {current.originalSweetName}, {next1.originalSweetName}, {next2.originalSweetName}");
+                Debug.Log($"Checking horizontal match at ({x}, {y}): {current.originalSweetName}, {next1.originalSweetName}, {next2.originalSweetName}");
 
                 if (current.originalSweetName == next1.originalSweetName && current.originalSweetName == next2.originalSweetName)
                 {
