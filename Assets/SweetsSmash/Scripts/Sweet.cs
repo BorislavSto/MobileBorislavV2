@@ -31,6 +31,28 @@ public class Sweet : MonoBehaviour
 
     public void Start()
     {
+        // SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
+        //
+        // if (spriteRenderer is null)
+        // {
+        //     Debug.LogError("No SpriteRenderer found on this GameObject!");
+        //     return;
+        // }
+        //
+        // int randomIndex = Random.Range(0, sweets.Length);
+        // originalSweetName = sweets[randomIndex].SweetName;
+        // Sweets selectedSweet = sweets[randomIndex];
+        //
+        // //spriteRenderer.sprite = selectedSweet.CandySprite;
+        // spriteRenderer.color = selectedSweet.SweetColor;
+        // originalColor = selectedSweet.SweetColor;
+        // this.name = selectedSweet.SweetName.ToString();
+        //
+        // Debug.Log($"Selected Candy: {selectedSweet.SweetName}");
+    }
+
+    public void SetType(int randomIndex)
+    {
         SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
         
         if (spriteRenderer is null)
@@ -39,7 +61,6 @@ public class Sweet : MonoBehaviour
             return;
         }
 
-        int randomIndex = Random.Range(0, sweets.Length);
         originalSweetName = sweets[randomIndex].SweetName;
         Sweets selectedSweet = sweets[randomIndex];
 
@@ -47,8 +68,6 @@ public class Sweet : MonoBehaviour
         spriteRenderer.color = selectedSweet.SweetColor;
         originalColor = selectedSweet.SweetColor;
         this.name = selectedSweet.SweetName.ToString();
-
-        Debug.Log($"Selected Candy: {selectedSweet.SweetName}");
     }
     
     public void SetPosition(int x, int y)

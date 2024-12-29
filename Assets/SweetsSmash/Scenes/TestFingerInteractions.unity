@@ -448,8 +448,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a1fd0c7abe74a134e946a7682662d3b5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gridWidth: 8
-  gridHeight: 14
+  gridWidth: 32
+  gridHeight: 32
   gridSpacing: 0.63
   candyPrefab: {fileID: 4256729983615467972, guid: 705072b93834ff9469f681fc937781bd, type: 3}
   gridParent: {fileID: 1071275684}
