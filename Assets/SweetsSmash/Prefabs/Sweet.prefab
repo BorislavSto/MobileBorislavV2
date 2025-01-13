@@ -197,14 +197,14 @@ MonoBehaviour:
   sweets:
   - SweetName: 0
     SweetColor: {r: 0, g: 1, b: 0.9905875, a: 1}
-    SweetSprite: {fileID: 0}
+    SweetSprite: {fileID: 21300000, guid: 3faa68d4e2f05f04786133598667ac36, type: 3}
   - SweetName: 1
     SweetColor: {r: 1, g: 0.9562597, b: 0, a: 1}
-    SweetSprite: {fileID: 0}
+    SweetSprite: {fileID: 21300000, guid: b6da46610f2e67c47ab4f5011422203a, type: 3}
   - SweetName: 2
     SweetColor: {r: 1, g: 0, b: 0, a: 1}
-    SweetSprite: {fileID: 0}
+    SweetSprite: {fileID: 21300000, guid: 70e92df91699f664ab5bad7bf4723022, type: 3}
   - SweetName: 3
     SweetColor: {r: 0.0018069744, g: 1, b: 0, a: 1}
-    SweetSprite: {fileID: 0}
+    SweetSprite: {fileID: 21300000, guid: 3281e91e074a48d4eb5d6a1fdd332a36, type: 3}
   originalSweetName: 0

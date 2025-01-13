@@ -43,7 +43,7 @@ public class Sweet : MonoBehaviour
         originalSweetName = sweets[randomIndex].SweetName;
         Sweets selectedSweet = sweets[randomIndex];
 
-        //spriteRenderer.sprite = selectedSweet.CandySprite;
+        spriteRenderer.sprite = selectedSweet.SweetSprite;
         spriteRenderer.color = selectedSweet.SweetColor;
         originalColor = selectedSweet.SweetColor;
         this.name = selectedSweet.SweetName.ToString();
