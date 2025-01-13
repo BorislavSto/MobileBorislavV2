@@ -4,32 +4,24 @@ using UnityEngine.Serialization;
 using Random = UnityEngine.Random;
 
 [Serializable]
-public enum SweetName
-{
-    RockCandy,
-    Chocolate,
-    Pepermint,
-    Gumdrop,
-}
-
-[Serializable]
 public struct Sweets
 {
-    public SweetName SweetName;
+    public string SweetName;
     public Color SweetColor;
-    public Sprite SweetSprite; 
+    public Sprite SweetSprite;
+    private int SweetId;
 }
 
 public class Sweet : MonoBehaviour
 {
     public Sweets[] sweets;
-    public SweetName originalSweetName;
-    private Color originalColor;  // Store the original color
-    
-    public int GridX { get; private set; }
-    public int GridY { get; private set; }
+    public int SweetID = 0;
+    private Color originalColor;
 
-    public void Start()
+    public int GridX;//{ get; private set; }
+    public int GridY; //{ get; private set; }
+
+    public void SetType(int randomIndex)
     {
         SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
         
@@ -39,16 +31,13 @@ public class Sweet : MonoBehaviour
             return;
         }
 
-        int randomIndex = Random.Range(0, sweets.Length);
-        originalSweetName = sweets[randomIndex].SweetName;
+        SweetID = randomIndex;
         Sweets selectedSweet = sweets[randomIndex];
 
         spriteRenderer.sprite = selectedSweet.SweetSprite;
         spriteRenderer.color = selectedSweet.SweetColor;
         originalColor = selectedSweet.SweetColor;
-        this.name = selectedSweet.SweetName.ToString();
-
-        Debug.Log($"Selected Candy: {selectedSweet.SweetName}");
+        this.name = selectedSweet.SweetName;
     }
     
     public void SetPosition(int x, int y)

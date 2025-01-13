@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Random = Unity.Mathematics.Random;
 
 [Serializable]
 public struct BlockoutArea
@@ -49,6 +50,7 @@ public class GridManager : MonoBehaviour
                 GameObject candy = Instantiate(candyPrefab, startPosition, Quaternion.identity, gridParent);
                 grid[x, y] = candy;
                 candy.GetComponent<Sweet>().SetPosition(x, y);
+                candy.GetComponent<Sweet>().SetType(UnityEngine.Random.Range(0, 3));
 
                 columnCandies.Add(candy);
                 targetPositions.Add(targetposition);
@@ -110,11 +112,11 @@ public class GridManager : MonoBehaviour
                 Sweet next1 = grid[x + 1, y].GetComponent<Sweet>();
                 Sweet next2 = grid[x + 2, y].GetComponent<Sweet>();
 
-                Debug.Log($"Checking horizontal match at ({x}, {y}): {current.originalSweetName}, {next1.originalSweetName}, {next2.originalSweetName}");
+                Debug.Log($"Checking horizontal match at ({x}, {y}): {current.SweetID}, {next1.SweetID}, {next2.SweetID}");
 
-                if (current.originalSweetName == next1.originalSweetName && current.originalSweetName == next2.originalSweetName)
+                if (current.SweetID == next1.SweetID && current.SweetID == next2.SweetID)
                 {
-                    Debug.Log($"Horizontal match found at ({x}, {y}) with type {current.originalSweetName}");
+                    Debug.Log($"Horizontal match found at ({x}, {y}) with type {current.SweetID}");
                     candiesToDestroy.Add(grid[x, y]);
                     candiesToDestroy.Add(grid[x + 1, y]);
                     candiesToDestroy.Add(grid[x + 2, y]);
@@ -135,11 +137,11 @@ public class GridManager : MonoBehaviour
                 Sweet next2 = grid[x, y + 2].GetComponent<Sweet>();
 
                 Debug.Log(
-                    $"Checking vertical match at ({x}, {y}): {current.originalSweetName}, {next1.originalSweetName}, {next2.originalSweetName}");
+                    $"Checking vertical match at ({x}, {y}): {current.SweetID}, {next1.SweetID}, {next2.SweetID}");
 
-                if (current.originalSweetName == next1.originalSweetName && current.originalSweetName == next2.originalSweetName)
+                if (current.SweetID == next1.SweetID && current.SweetID == next2.SweetID)
                 {
-                    Debug.Log($"Vertical match found at ({x}, {y}) with type {current.originalSweetName}");
+                    Debug.Log($"Vertical match found at ({x}, {y}) with type {current.SweetID}");
                     candiesToDestroy.Add(grid[x, y]);
                     candiesToDestroy.Add(grid[x, y + 1]);
                     candiesToDestroy.Add(grid[x, y + 2]);
@@ -154,7 +156,7 @@ public class GridManager : MonoBehaviour
             {
                 Sweet candyScript = candy.GetComponent<Sweet>();
                 Debug.Log(
-                    $"Destroying candy at ({candyScript.GridX}, {candyScript.GridY}) with type {candyScript.originalSweetName}");
+                    $"Destroying candy at ({candyScript.GridX}, {candyScript.GridY}) with type {candyScript.SweetID}");
 
                 if (candyScript != null)
                     grid[candyScript.GridX, candyScript.GridY] = null;
