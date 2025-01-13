@@ -6,8 +6,20 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/SampleScene.unity
-    guid: 2cda990e2423bbf4892e6590ba056729
+    path: Assets/SweetsSmash/Scenes/Loading.unity
+    guid: b45cc36d874ee7649a17dc93268d6909
+  - enabled: 1
+    path: Assets/SweetsSmash/Scenes/MainMenu.unity
+    guid: 5dc8a6754f5b494429d896dca2cfb01b
+  - enabled: 1
+    path: Assets/SweetsSmash/Scenes/Options.unity
+    guid: 00b125d3e3970b34bad3b9b027ba28be
+  - enabled: 1
+    path: Assets/SweetsSmash/Scenes/TestFingerInteractions.unity
+    guid: e6d9f747ff3c3f84c90a442b2d9ea68f
+  - enabled: 1
+    path: Assets/SweetsSmash/Scenes/BeginPlay.unity
+    guid: 0e9fec5a5648ed745934a264d41a538e
   m_configObjects:
     com.unity.adaptiveperformance.loader_settings: {fileID: 11400000, guid: 3a7cfcc73fa55ea4ab2522f584153181, type: 2}
     com.unity.adaptiveperformance.simulator.provider_settings: {fileID: 11400000, guid: 986ad2c758ba6c443a0c2b5ba4d6e73f, type: 2}
