@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using Random = Unity.Mathematics.Random;
 
 [Serializable]
@@ -19,17 +20,20 @@ public class GridManager : MonoBehaviour
     public GameObject candyPrefab;
     public Transform gridParent;
     protected Vector2 SpawnHeight = new Vector2(0, 6);
+    public SpriteRenderer backGround;
 
     [Header("Blockout Area")] public BlockoutArea[] blockoutAreas;
 
     [HideInInspector] public GameObject[,] grid;
 
-    void Start()
+    public void StartGrid(int width, int height, BlockoutArea[] blockout, Sprite image)
     {
-        grid = new GameObject[gridWidth, gridHeight];
+        grid = new GameObject[width, height];
+        blockoutAreas = blockout;
+        backGround.sprite = image;
         StartCoroutine(InitializeGrid());
     }
-
+    
     IEnumerator InitializeGrid()
     {
         Vector2 parentPosition = gridParent.position;
@@ -74,9 +78,7 @@ public class GridManager : MonoBehaviour
             }
 
             for (int i = 0; i < columnCandies.Count; i++)
-            {
                 columnCandies[i].transform.position = targetPositions[i];
-            }
         }
         CheckForMatches();
     }

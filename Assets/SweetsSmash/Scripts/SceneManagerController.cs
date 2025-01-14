@@ -9,17 +9,17 @@ using Scene = UnityEngine.SceneManagement.Scene;
 public enum Scenes
 {
     Loading,
-    Sound,
     Options,
     MainMenu,
     Levels,
+    SharedSystems,
 }
 
 public class SceneManagerController : MonoBehaviour
 {
     public static SceneManagerController Instance { get; private set; }
-
-    public Scenes CurrentScene { get; private set; }
+    public List<Scenes> ActiveScenes = new();
+    
     public event Action<Scenes> OnSceneChanged;
 
     private void Awake()
@@ -29,10 +29,11 @@ public class SceneManagerController : MonoBehaviour
             Destroy(gameObject);
             return;
         }
+
         Instance = this;
         DontDestroyOnLoad(gameObject);
-
-        LoadScene(Scenes.MainMenu);
+        
+        InitLoad();
     }
 
     public void LoadScene(Scenes scene)
@@ -40,34 +41,58 @@ public class SceneManagerController : MonoBehaviour
         StartCoroutine(LoadSceneAsync(scene));
     }
 
-    public void ReloadCurrentScene()
+    #region InitialLoad
+    private void InitLoad()
     {
-        LoadScene(CurrentScene);
+        StartCoroutine(LoadSetup());
     }
 
+    private IEnumerator LoadSetup()
+    {
+        yield return SceneManager.LoadSceneAsync(Scenes.Loading.ToString(), LoadSceneMode.Additive);
+
+        List<Scenes> scenesToLoad = new List<Scenes>
+        {
+            Scenes.SharedSystems,
+            Scenes.Options,
+            Scenes.MainMenu
+        };
+
+        List<AsyncOperation> loadOperations = new List<AsyncOperation>();
+        foreach (Scenes scene in scenesToLoad)
+        {
+            loadOperations.Add(SceneManager.LoadSceneAsync(scene.ToString(), LoadSceneMode.Additive));
+        }
+
+        foreach (AsyncOperation operation in loadOperations)
+        {
+            yield return new WaitUntil(() => operation.isDone);
+        }
+
+        yield return SceneManager.UnloadSceneAsync(Scenes.Loading.ToString());
+
+        foreach (Scenes scene in scenesToLoad)
+        {
+            ActiveScenes.Add(scene);
+            OnSceneChanged?.Invoke(scene);
+        }
+    } 
+    #endregion
+    
     private IEnumerator LoadSceneAsync(Scenes scene)
     {
         SceneManager.LoadScene(Scenes.Loading.ToString(), LoadSceneMode.Additive);
         yield return null;
 
-        // Load the target scene
-        var asyncOp = SceneManager.LoadSceneAsync(scene.ToString(), LoadSceneMode.Additive);
+        AsyncOperation asyncOp = SceneManager.LoadSceneAsync(scene.ToString(), LoadSceneMode.Additive);
         while (!asyncOp.isDone)
-        {
-            // Optional: Handle progress (asyncOp.progress)
             yield return null;
-        }
-    
+        
         if (asyncOp.isDone)
                 UnloadScene(Scenes.Loading);
         
-        CurrentScene = scene;
+        ActiveScenes.Add(scene);
         OnSceneChanged?.Invoke(scene);
-    }
-
-    private void SaveScene(Scenes scene)
-    {
-        
     }
 
     public void UnloadScene(Scenes scene)
@@ -75,20 +100,45 @@ public class SceneManagerController : MonoBehaviour
         Scene unloadedScene = SceneManager.GetSceneByName(scene.ToString());
         if (unloadedScene.IsValid())
         {
-            Debug.Log($"Successfully loaded scene: {unloadedScene.name}");
             SceneManager.UnloadSceneAsync(scene.ToString());
+            System.GC.Collect();
+
+            if (ActiveScenes.Contains(scene))
+                ActiveScenes.Remove(scene);
         }
         else
             Debug.LogError($"Failed to load scene: {scene}");
     }
-    
-    public void LoadSoundScene()
+
+    public void LoadLevel(LevelDataScripatbleObject levelData)
     {
-        SceneManager.LoadScene(Scenes.Sound.ToString(), LoadSceneMode.Additive);
+        UnloadScene(Scenes.MainMenu);
+
+        SceneManager.LoadSceneAsync(Scenes.Levels.ToString(), LoadSceneMode.Additive)
+            .completed += (operation) =>
+        {
+            LevelGameManager levelObject = FindObjectOfType<LevelGameManager>();
+
+            if (levelObject != null)
+            {
+                Debug.LogError("LevelController Object fourd!");
+                levelObject.SetupGame(levelData);
+                ActiveScenes.Add(Scenes.Levels);
+            }
+            else
+                Debug.LogError("LevelController object not found in the scene!");
+        };
     }
+    
+    public void LoadAllSystemsScene()
+    {
+        SceneManager.LoadScene(Scenes.SharedSystems.ToString(), LoadSceneMode.Additive);
+        ActiveScenes.Add(Scenes.SharedSystems);
+    }   
     
     public void LoadOptionsScene()
     {
-        SceneManager.LoadScene(Scenes.Sound.ToString(), LoadSceneMode.Additive);
+        SceneManager.LoadScene(Scenes.Options.ToString(), LoadSceneMode.Additive);
+        ActiveScenes.Add(Scenes.Options);
     }
 }
