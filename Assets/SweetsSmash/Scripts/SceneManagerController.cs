@@ -12,6 +12,7 @@ public enum Scenes
     Options,
     MainMenu,
     Levels,
+    LevelClose,
     SharedSystems,
 }
 
@@ -110,11 +111,13 @@ public class SceneManagerController : MonoBehaviour
             Debug.LogError($"Failed to load scene: {scene}");
     }
 
-    public void LoadLevel(LevelDataScripatbleObject levelData)
+    public void LoadLevelFromMenu(LevelDataScripatbleObject levelData)
     {
         UnloadScene(Scenes.MainMenu);
 
-        SceneManager.LoadSceneAsync(Scenes.Levels.ToString(), LoadSceneMode.Additive)
+        string level = levelData.levelType.ToString();
+        
+        SceneManager.LoadSceneAsync(level, LoadSceneMode.Additive)
             .completed += (operation) =>
         {
             LevelGameManager levelObject = FindObjectOfType<LevelGameManager>();
@@ -128,16 +131,25 @@ public class SceneManagerController : MonoBehaviour
                 Debug.LogError("LevelController object not found in the scene!");
         };
     }
-    
-    public void LoadAllSystemsScene()
+
+    public void ReloadLevel(LevelDataScripatbleObject levelData)
     {
-        SceneManager.LoadScene(Scenes.SharedSystems.ToString(), LoadSceneMode.Additive);
-        ActiveScenes.Add(Scenes.SharedSystems);
-    }   
-    
-    public void LoadOptionsScene()
-    {
-        SceneManager.LoadScene(Scenes.Options.ToString(), LoadSceneMode.Additive);
-        ActiveScenes.Add(Scenes.Options);
+        string level = levelData.levelType.ToString();
+        
+        UnloadScene(levelData.levelType);
+        
+        SceneManager.LoadSceneAsync(level, LoadSceneMode.Additive)
+            .completed += (operation) =>
+        {
+            LevelGameManager levelObject = FindObjectOfType<LevelGameManager>();
+
+            if (levelObject != null)
+            {
+                levelObject.SetupGame(levelData);
+                ActiveScenes.Add(Scenes.Levels);
+            }
+            else
+                Debug.LogError("LevelController object not found in the scene!");
+        };
     }
 }

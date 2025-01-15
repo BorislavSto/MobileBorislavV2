@@ -9,8 +9,13 @@ public class LevelDataScripatbleObject : ScriptableObject
     public int GridY;
     public BlockoutArea[] blockoutAreas;
     
-    [Header("Other Data?")]
+    [Header("Level Data")]
     public string levelName;
     public int levelNumber;
     public Sprite sprite;
+    public int pointsToWin;
+    public int turnsToWin;
+    
+    [Header("LevelType")]
+    public Scenes levelType;
 }

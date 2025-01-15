@@ -6,7 +6,14 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
     public int lives = 0;
-    public List<int> beatenLevels { get; private set; }
+    public List<int> beatenLevels = new List<int>(); //{ get; private set; }
+    
+    public bool gameOver = false;
+    
+    [Tooltip("If true won, if false lost")]
+    public event Action<bool> OnGameEnd;
+    public event Action<int> OnPointsGained;
+    public event Action OnTurnTaken;
     
     private void Awake()
     {
@@ -18,8 +25,6 @@ public class GameManager : MonoBehaviour
 
         Instance = this;
         DontDestroyOnLoad(gameObject);
-        
-        
     }
 
     public void OnSucceededLevel(int level)
@@ -53,4 +58,8 @@ public class GameManager : MonoBehaviour
             beatenLevels = new List<int>(); // Default if no saved data exists
         }
     }
+
+    public void OnGameEndTrigger(bool didWin) { OnGameEnd?.Invoke(didWin); }
+    public void OnTurnTakenTrigger() { OnTurnTaken?.Invoke(); }
+    public void OnPointsGainedTrigger(int score) { OnPointsGained?.Invoke(score); }
 }

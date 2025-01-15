@@ -18,5 +18,8 @@ MonoBehaviour:
   - blockMin: {x: 2, y: 2}
     blockMax: {x: 3, y: 3}
   levelName: 
-  levelNumber: 
+  levelNumber: 0
   sprite: {fileID: 21300000, guid: da7129ed6a246f048a49d8d97de2d2d4, type: 3}
+  pointsToWin: 100
+  turnsToWin: 5
+  levelType: 3

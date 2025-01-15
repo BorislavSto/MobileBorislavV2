@@ -48,6 +48,11 @@ public class MainMenuManager : MonoBehaviour
 
     public void PlayLevel(LevelDataScripatbleObject levelDataScripatbleObject)
     {
-        sceneManagerController.LoadLevel(levelDataScripatbleObject);
+        sceneManagerController.LoadLevelFromMenu(levelDataScripatbleObject);
+    }
+
+    public void ExitGame()
+    {
+        Application.Quit();
     }
 }

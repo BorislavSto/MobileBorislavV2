@@ -35,7 +35,10 @@ public class OptionsManager : MonoBehaviour
     private void Start()
     {
         sceneManagerController = SceneManagerController.Instance;
+        gameManager = GameManager.Instance;
         audioMixer = FindObjectOfType<AudioMixer>();
+
+        gameManager.OnGameEnd += OnGameEnd;
     }
 
     public void OnOpenOptionsButtonClicked()
@@ -67,6 +70,9 @@ public class OptionsManager : MonoBehaviour
     {
         sceneManagerController.UnloadScene(Scenes.Levels);
         sceneManagerController.LoadScene(Scenes.MainMenu);
+
+        loseMenu.SetActive(false);
+
         OnCloseOptionsButtonClicked();
     }
 
@@ -81,6 +87,14 @@ public class OptionsManager : MonoBehaviour
         audioMixer.SetFloat("Volume", volume);
     }
 
+    private void OnGameEnd(bool didWin)
+    {
+        if (didWin)
+            ShowWinMenu();
+        else
+            ShowLoseMenu();
+    }
+    
     public void ShowWinMenu()
     {
         winMenu.SetActive(true);
@@ -95,20 +109,21 @@ public class OptionsManager : MonoBehaviour
     {
         LevelGameManager levelObject = FindObjectOfType<LevelGameManager>();
         int levelNumber = levelObject.currentLevelNumber; 
-        
+        Scenes level = levelObject.currentLevelData.levelType;
+
         gameManager.OnSucceededLevel(levelNumber);
-        sceneManagerController.UnloadScene(Scenes.Levels);
+        sceneManagerController.UnloadScene(level);
         sceneManagerController.LoadScene(Scenes.MainMenu);
+        
+        winMenu.SetActive(false);
         OnCloseOptionsButtonClicked();
     }
-
+    
     public void RetryButton()
     {
         if (gameManager.lives == 0)
         {
             adWindow.SetActive(true);
-            
-            
             return;
         }
         
@@ -117,7 +132,8 @@ public class OptionsManager : MonoBehaviour
         LevelGameManager levelObject = FindObjectOfType<LevelGameManager>();
         LevelDataScripatbleObject levelData = levelObject.currentLevelData;
         
-        sceneManagerController.UnloadScene(Scenes.Levels);
-        sceneManagerController.LoadLevel(levelData);
+        loseMenu.SetActive(false);
+
+        sceneManagerController.ReloadLevel(levelData);
     }
 }

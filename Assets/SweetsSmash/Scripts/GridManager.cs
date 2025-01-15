@@ -23,7 +23,10 @@ public class GridManager : MonoBehaviour
 
     [Header("Blockout Area")] 
     public BlockoutArea[] blockoutAreas;
-
+    
+    private GameManager gameManager;
+    
+    private bool isRefilling = false;
     private bool isProcessingMatches;
     private Vector2Int[] directions =
         { new Vector2Int(0, 1), new Vector2Int(1, 0), new Vector2Int(0, -1), new Vector2Int(-1, 0) };
@@ -32,6 +35,8 @@ public class GridManager : MonoBehaviour
 
     public void StartGrid(int width, int height, BlockoutArea[] blockout, Sprite image)
     {
+        gameManager = GameManager.Instance;
+        
         grid = new GameObject[width, height];
         blockoutAreas = blockout;
         backGround.sprite = image;
@@ -108,7 +113,6 @@ public class GridManager : MonoBehaviour
         }
     }
 
-
     List<Vector2Int> GetConnectedCandies(int startX, int startY)
     {
         Stack<Vector2Int> stack = new Stack<Vector2Int>();
@@ -139,6 +143,7 @@ public class GridManager : MonoBehaviour
                 }
             }
         }
+
         return matchList;
     }
 
@@ -163,25 +168,68 @@ public class GridManager : MonoBehaviour
 
     public void CheckForMatches()
     {
+        if (!gameManager)
+            gameManager = GameManager.Instance;
+        
+        if (gameManager.gameOver)
+            return;
+        
+        if (isRefilling)
+            return;
+        
         HashSet<GameObject> candiesToDestroy = new HashSet<GameObject>();
+        Dictionary<int, int> matchCounts = new Dictionary<int, int>(); // To track counts of matches by size for points
+        bool candyWasDestroyed = false;
 
         // Horizontal matches
         for (int y = 0; y < gridHeight; y++)
         {
-            for (int x = 0; x < gridWidth - 2; x++)
+            int matchCount = 1; // Start with 1 candy in the match
+
+            for (int x = 0; x < gridWidth; x++)
             {
-                if (grid[x, y] == null || grid[x + 1, y] == null || grid[x + 2, y] == null)
+                if (x == gridWidth - 1 || grid[x, y] == null || grid[x + 1, y] == null)
+                {
+                    if (matchCount >= 3)
+                    {
+                        // Log horizontal match
+                        for (int i = 0; i < matchCount; i++)
+                        {
+                            candiesToDestroy.Add(grid[x - i, y]);
+                        }
+
+                        if (!matchCounts.ContainsKey(matchCount))
+                            matchCounts[matchCount] = 0;
+                        matchCounts[matchCount]++;
+                    }
+
+                    matchCount = 1; // Reset match count for next sequence
                     continue;
+                }
 
                 Sweet current = grid[x, y].GetComponent<Sweet>();
-                Sweet next1 = grid[x + 1, y].GetComponent<Sweet>();
-                Sweet next2 = grid[x + 2, y].GetComponent<Sweet>();
+                Sweet next = grid[x + 1, y].GetComponent<Sweet>();
 
-                if (current.SweetID == next1.SweetID && current.SweetID == next2.SweetID)
+                if (current != null && next != null && current.SweetID == next.SweetID)
                 {
-                    candiesToDestroy.Add(grid[x, y]);
-                    candiesToDestroy.Add(grid[x + 1, y]);
-                    candiesToDestroy.Add(grid[x + 2, y]);
+                    matchCount++;
+                }
+                else
+                {
+                    if (matchCount >= 3)
+                    {
+                        // Log horizontal match
+                        for (int i = 0; i < matchCount; i++)
+                        {
+                            candiesToDestroy.Add(grid[x - i, y]);
+                        }
+
+                        if (!matchCounts.ContainsKey(matchCount))
+                            matchCounts[matchCount] = 0;
+                        matchCounts[matchCount]++;
+                    }
+
+                    matchCount = 1; // Reset match count for next sequence
                 }
             }
         }
@@ -189,23 +237,58 @@ public class GridManager : MonoBehaviour
         // Vertical matches
         for (int x = 0; x < gridWidth; x++)
         {
-            for (int y = 0; y < gridHeight - 2; y++)
+            int matchCount = 1; // Start with 1 candy in the match
+
+            for (int y = 0; y < gridHeight; y++)
             {
-                if (grid[x, y] == null || grid[x, y + 1] == null || grid[x, y + 2] == null)
+                if (y == gridHeight - 1 || grid[x, y] == null || grid[x, y + 1] == null)
+                {
+                    if (matchCount >= 3)
+                    {
+                        // Log vertical match
+                        for (int i = 0; i < matchCount; i++)
+                        {
+                            candiesToDestroy.Add(grid[x, y - i]);
+                        }
+
+                        if (!matchCounts.ContainsKey(matchCount))
+                            matchCounts[matchCount] = 0;
+                        matchCounts[matchCount]++;
+                    }
+
+                    matchCount = 1; // Reset match count for next sequence
                     continue;
+                }
 
                 Sweet current = grid[x, y].GetComponent<Sweet>();
-                Sweet next1 = grid[x, y + 1].GetComponent<Sweet>();
-                Sweet next2 = grid[x, y + 2].GetComponent<Sweet>();
+                Sweet next = grid[x, y + 1].GetComponent<Sweet>();
 
-                if (current.SweetID == next1.SweetID && current.SweetID == next2.SweetID)
+                if (current != null && next != null && current.SweetID == next.SweetID)
                 {
-                    candiesToDestroy.Add(grid[x, y]);
-                    candiesToDestroy.Add(grid[x, y + 1]);
-                    candiesToDestroy.Add(grid[x, y + 2]);
+                    matchCount++;
+                }
+                else
+                {
+                    if (matchCount >= 3)
+                    {
+                        // Log vertical match
+                        for (int i = 0; i < matchCount; i++)
+                        {
+                            candiesToDestroy.Add(grid[x, y - i]);
+                        }
+
+                        if (!matchCounts.ContainsKey(matchCount))
+                            matchCounts[matchCount] = 0;
+                        matchCounts[matchCount]++;
+                    }
+
+                    matchCount = 1; // Reset match count for next sequence
                 }
             }
         }
+    
+        if (candiesToDestroy.Count > 0) 
+            candyWasDestroyed = true;
 
         // Destroy matched candies
         foreach (GameObject candy in candiesToDestroy)
@@ -213,7 +296,7 @@ public class GridManager : MonoBehaviour
             if (candy != null)
             {
                 Sweet candyScript = candy.GetComponent<Sweet>();
-               
+
                 if (candyScript != null)
                     grid[candyScript.GridX, candyScript.GridY] = null;
 
@@ -221,16 +304,36 @@ public class GridManager : MonoBehaviour
             }
         }
 
-        RefillGrid();
+        // Log match counts
+        foreach (KeyValuePair<int, int> count in matchCounts)
+        {
+            int totalPoints = 0;
+            int matchSize = count.Key;
+            int matchCount = count.Value;
+            int pointsForThisMatchSize = matchSize * 10;
+            totalPoints += pointsForThisMatchSize * matchCount;
+            
+            gameManager.OnPointsGainedTrigger(totalPoints);
+
+            Debug.Log($"Number of {count.Key}-candy matches: {count.Value}");
+        }
+
+        if (candyWasDestroyed) 
+            RefillGrid();
     }
+
 
     public void RefillGrid()
     {
-        StartCoroutine(RefillGridCoroutine());
+        if (!isRefilling)
+        {
+            isRefilling = true;
+            StartCoroutine(RefillGridCoroutine());
+        }
     }
 
     IEnumerator RefillGridCoroutine()
-    {
+    { 
         Vector2 parentPosition = gridParent.position;
 
         for (int x = 0; x < gridWidth; x++)
@@ -245,7 +348,7 @@ public class GridManager : MonoBehaviour
                     runningEmptyCount = 0;
                 else if (grid[x, y] == null)
                     runningEmptyCount++;
-                
+
                 emptySpacesBelow[y] = runningEmptyCount;
             }
 
@@ -302,7 +405,7 @@ public class GridManager : MonoBehaviour
                     GameObject newCandy = Instantiate(candyPrefab, startPosition, Quaternion.identity, gridParent);
                     Sweet sweet = newCandy.GetComponent<Sweet>();
                     grid[x, y] = newCandy;
-                    sweet.SetPosition(x,y);
+                    sweet.SetPosition(x, y);
                     sweet.SetType(UnityEngine.Random.Range(0, 3));
 
                     newCandies.Add((newCandy, startPosition, targetPosition, x, y));
@@ -317,7 +420,9 @@ public class GridManager : MonoBehaviour
         }
 
         yield return new WaitForSeconds(0.1f);
-        
+
+        isRefilling = false;
+
         // added as a preventative for candies falling during checks, breaking the game
         if (!isProcessingMatches)
             CheckForMatches();
@@ -369,7 +474,7 @@ public class GridManager : MonoBehaviour
                     candies[i].transform.position = Vector2.Lerp(startPositions[i], targets[i], candyTime);
                 }
             }
-            
+
             yield return null;
         }
 
@@ -379,6 +484,7 @@ public class GridManager : MonoBehaviour
             if (candies[i] != null)
                 candies[i].transform.position = targets[i];
         }
+
         isProcessingMatches = false;
     }
 
@@ -417,6 +523,7 @@ public class GridManager : MonoBehaviour
             if (candyData.candy != null)
                 candyData.candy.transform.position = candyData.target;
         }
+
         isProcessingMatches = false;
     }
 }

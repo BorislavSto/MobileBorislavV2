@@ -5,7 +5,9 @@ public class CandySelectionManager : MonoBehaviour
 {
     public GridManager gridManager;
     public GameObject selectedCandy;
-
+    
+    private GameManager gameManager;
+    
     void OnEnable()
     {
         LeanTouch.OnFingerTap += HandleTap;
@@ -22,8 +24,12 @@ public class CandySelectionManager : MonoBehaviour
     // ReSharper disable Unity.PerformanceAnalysis
     void HandleTap(LeanFinger finger)
     {
-        Debug.Log("Touch detected");
-
+        if (!gameManager)
+            gameManager = GameManager.Instance;
+        
+        if (gameManager.gameOver)
+            return;
+        
         Vector3 worldPosition = finger.GetWorldPosition(10f);
         RaycastHit2D hit = Physics2D.Raycast(worldPosition, Vector2.zero);
 
@@ -76,7 +82,7 @@ public class CandySelectionManager : MonoBehaviour
     void SwapCandy(GameObject candy, Vector2 direction)
     {
         if (candy is null) return;
-
+        
         Sweet candyScript = candy.GetComponent<Sweet>();
         if (candyScript is null) return;
 
@@ -93,6 +99,11 @@ public class CandySelectionManager : MonoBehaviour
         Sweet targetCandyScript = targetCandy.GetComponent<Sweet>();
         if (targetCandyScript is null) return;
 
+        if (!gameManager)
+            gameManager = GameManager.Instance;
+
+        gameManager.OnTurnTakenTrigger();
+        
         // Swap candies in the grid
         gridManager.grid[candyScript.GridX, candyScript.GridY] = targetCandy;
         gridManager.grid[targetCandyScript.GridX, targetCandyScript.GridY] = candy;
