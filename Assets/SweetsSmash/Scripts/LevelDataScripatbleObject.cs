@@ -11,6 +11,6 @@ public class LevelDataScripatbleObject : ScriptableObject
     
     [Header("Other Data?")]
     public string levelName;
-    public string levelNumber;
+    public int levelNumber;
     public Sprite sprite;
 }

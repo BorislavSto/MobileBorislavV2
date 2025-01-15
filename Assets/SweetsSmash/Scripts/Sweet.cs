@@ -18,8 +18,8 @@ public class Sweet : MonoBehaviour
     public int SweetID = 0;
     private Color originalColor;
 
-    public int GridX;//{ get; private set; }
-    public int GridY; //{ get; private set; }
+    public int GridX { get; private set; }
+    public int GridY { get; private set; }
 
     public void SetType(int randomIndex)
     {

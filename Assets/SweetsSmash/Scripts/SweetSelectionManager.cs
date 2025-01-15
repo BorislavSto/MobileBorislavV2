@@ -76,7 +76,7 @@ public class CandySelectionManager : MonoBehaviour
     void SwapCandy(GameObject candy, Vector2 direction)
     {
         if (candy is null) return;
-        
+
         Sweet candyScript = candy.GetComponent<Sweet>();
         if (candyScript is null) return;
 
@@ -90,18 +90,28 @@ public class CandySelectionManager : MonoBehaviour
         GameObject targetCandy = gridManager.grid[targetX, targetY];
         if (targetCandy == null) return;
 
+        Sweet targetCandyScript = targetCandy.GetComponent<Sweet>();
+        if (targetCandyScript is null) return;
+
+        // Swap candies in the grid
         gridManager.grid[candyScript.GridX, candyScript.GridY] = targetCandy;
-        gridManager.grid[targetX, targetY] = candy;
+        gridManager.grid[targetCandyScript.GridX, targetCandyScript.GridY] = candy;
 
-        (targetCandy.transform.position, candy.transform.position) = (candy.transform.position, targetCandy.transform.position);
+        // Swap grid positions
+        int tempX = candyScript.GridX;
+        int tempY = candyScript.GridY;
 
-        candy.GetComponent<Sweet>().SetPosition(targetX, targetY);
-        targetCandy.GetComponent<Sweet>().SetPosition(candyScript.GridX, candyScript.GridY);
+        candyScript.SetPosition(targetCandyScript.GridX, targetCandyScript.GridY);
+        targetCandyScript.SetPosition(tempX, tempY);
 
+        // Swap world positions
+        (candy.transform.position, targetCandy.transform.position) = (targetCandy.transform.position, candy.transform.position);
+
+        // Deselect candy and check for matches
         DeselectCandy();
-
         gridManager.CheckForMatches();
     }
+
 
 
     void SelectCandy(GameObject candy)

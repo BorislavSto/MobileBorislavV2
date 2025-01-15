@@ -453,7 +453,7 @@ MonoBehaviour:
   gridSpacing: 0.63
   candyPrefab: {fileID: 4256729983615467972, guid: 705072b93834ff9469f681fc937781bd, type: 3}
   gridParent: {fileID: 1071275684}
-  backGround: {fileID: 0}
+  backGround: {fileID: 193511859}
   blockoutAreas:
   - blockMin: {x: 2, y: 2}
     blockMax: {x: 4, y: 4}

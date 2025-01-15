@@ -121,7 +121,6 @@ public class SceneManagerController : MonoBehaviour
 
             if (levelObject != null)
             {
-                Debug.LogError("LevelController Object fourd!");
                 levelObject.SetupGame(levelData);
                 ActiveScenes.Add(Scenes.Levels);
             }

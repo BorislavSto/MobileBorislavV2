@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Audio;
 using UnityEngine.Serialization;
@@ -22,7 +23,13 @@ public class OptionsManager : MonoBehaviour
     [Header("Sliders")]
     public Slider volumeSlider;
     
+    [Header("LevelMenus")]
+    public GameObject adWindow;
+    public GameObject winMenu;
+    public GameObject loseMenu;
+    
     private SceneManagerController sceneManagerController;
+    public GameManager gameManager;
     private AudioMixer audioMixer;
 
     private void Start()
@@ -72,5 +79,45 @@ public class OptionsManager : MonoBehaviour
     {
         float volume = Mathf.Log10(sliderValue) * 20;
         audioMixer.SetFloat("Volume", volume);
+    }
+
+    public void ShowWinMenu()
+    {
+        winMenu.SetActive(true);
+    }   
+    
+    public void ShowLoseMenu()
+    {
+        loseMenu.SetActive(true);
+    }
+
+    public void BackToMenuWinButton()
+    {
+        LevelGameManager levelObject = FindObjectOfType<LevelGameManager>();
+        int levelNumber = levelObject.currentLevelNumber; 
+        
+        gameManager.OnSucceededLevel(levelNumber);
+        sceneManagerController.UnloadScene(Scenes.Levels);
+        sceneManagerController.LoadScene(Scenes.MainMenu);
+        OnCloseOptionsButtonClicked();
+    }
+
+    public void RetryButton()
+    {
+        if (gameManager.lives == 0)
+        {
+            adWindow.SetActive(true);
+            
+            
+            return;
+        }
+        
+        gameManager.lives--;
+        
+        LevelGameManager levelObject = FindObjectOfType<LevelGameManager>();
+        LevelDataScripatbleObject levelData = levelObject.currentLevelData;
+        
+        sceneManagerController.UnloadScene(Scenes.Levels);
+        sceneManagerController.LoadLevel(levelData);
     }
 }
