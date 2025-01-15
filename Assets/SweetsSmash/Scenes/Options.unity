@@ -175,6 +175,7 @@ MonoBehaviour:
   settingsButton: {fileID: 1814861427}
   mainMenuButton: {fileID: 1788646393}
   volumeSlider: {fileID: 1783764336}
+  adWindow: {fileID: 0}
   winMenu: {fileID: 0}
   loseMenu: {fileID: 0}
   gameManager: {fileID: 0}
@@ -2393,7 +2394,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1713827512
 RectTransform:
   m_ObjectHideFlags: 0
