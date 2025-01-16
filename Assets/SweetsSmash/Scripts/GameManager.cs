@@ -14,6 +14,7 @@ public class GameManager : MonoBehaviour
     public event Action<bool> OnGameEnd;
     public event Action<int> OnPointsGained;
     public event Action OnTurnTaken;
+    public event Action<int> OnLivesChanged;
     
     private void Awake()
     {
@@ -62,4 +63,10 @@ public class GameManager : MonoBehaviour
     public void OnGameEndTrigger(bool didWin) { OnGameEnd?.Invoke(didWin); }
     public void OnTurnTakenTrigger() { OnTurnTaken?.Invoke(); }
     public void OnPointsGainedTrigger(int score) { OnPointsGained?.Invoke(score); }
+
+    public void OnLivesChangedTrigger(int changeToLives)
+    {
+        lives += changeToLives;
+        OnLivesChanged?.Invoke(lives);
+    }
 }

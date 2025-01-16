@@ -1,3 +1,5 @@
+using System;
+using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Audio;
@@ -28,6 +30,10 @@ public class OptionsManager : MonoBehaviour
     public GameObject winMenu;
     public GameObject loseMenu;
     
+    [Header("LivesText")]
+    public TMP_Text livesText1;
+    public TMP_Text livesText2;
+    
     private SceneManagerController sceneManagerController;
     public GameManager gameManager;
     private AudioMixer audioMixer;
@@ -39,6 +45,13 @@ public class OptionsManager : MonoBehaviour
         audioMixer = FindObjectOfType<AudioMixer>();
 
         gameManager.OnGameEnd += OnGameEnd;
+        gameManager.OnLivesChanged += OnLivesChanged;
+    }
+
+    private void OnDestroy()
+    {
+        gameManager.OnGameEnd -= OnGameEnd;
+        gameManager.OnLivesChanged -= OnLivesChanged;
     }
 
     public void OnOpenOptionsButtonClicked()
@@ -127,7 +140,7 @@ public class OptionsManager : MonoBehaviour
             return;
         }
         
-        gameManager.lives--;
+        gameManager.OnLivesChangedTrigger(-1);
         
         LevelGameManager levelObject = FindObjectOfType<LevelGameManager>();
         LevelDataScripatbleObject levelData = levelObject.currentLevelData;
@@ -135,5 +148,16 @@ public class OptionsManager : MonoBehaviour
         loseMenu.SetActive(false);
 
         sceneManagerController.ReloadLevel(levelData);
+    }
+
+    public void OnLivesChanged(int lives)
+    {
+        livesText1.text = $"Your lives {lives.ToString()}";
+        livesText2.text = $"Your lives {lives.ToString()}";
+    }
+
+    public void CloseAdWindow()
+    {
+        adWindow.SetActive(false);
     }
 }
